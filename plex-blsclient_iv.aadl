@@ -1,0 +1,200 @@
+---------------------------------------------------
+-- AADL2.1
+-- TASTE type interfaceview
+-- 
+-- generated code: do not edit
+---------------------------------------------------
+
+PACKAGE interfaceview::IV::blsclient
+PUBLIC
+
+WITH interfaceview::IV::dummyConsumer;
+WITH Taste;
+WITH DataView;
+WITH TASTE_IV_Properties;
+SUBPROGRAM PI_motion_command
+FEATURES
+  mc : IN PARAMETER DataView::Base_commands_Motion2D {
+    Taste::encoding => NATIVE;
+  };
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_motion_command;
+
+SUBPROGRAM IMPLEMENTATION PI_motion_command.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 20 ms;
+END PI_motion_command.others;
+
+SUBPROGRAM RI_rigidBodyState
+FEATURES
+  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
+    Taste::encoding => NATIVE;
+  };
+END RI_rigidBodyState;
+
+SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
+END RI_rigidBodyState.others;
+
+SYSTEM blsclient
+FEATURES
+  PI_motion_command : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_motion_command.others {
+    Taste::coordinates => "104490 87815";
+    Taste::RCMoperationKind => sporadic;
+    Taste::RCMperiod => 1000 ms;
+    Taste::Deadline => 10 ms;
+    Taste::InterfaceName => "motion_command";
+  };
+  RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
+    Taste::coordinates => "174974 121160";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "rigidBodyState";
+    Taste::labelInheritance => "false";
+  };
+PROPERTIES
+  Source_Language => (CPP);
+  Taste::Active_Interfaces => any;
+END blsclient;
+
+SYSTEM IMPLEMENTATION blsclient.others
+SUBCOMPONENTS
+  compilerOption : DATA DataView::Taste_directive {
+    Taste::FS_Default_Value => "compiler-option:""-DOROCOS_TARGET=gnulinux""";
+  };
+END blsclient.others;
+
+END interfaceview::IV::blsclient;
+
+PACKAGE interfaceview::IV::dummyProducer
+PUBLIC
+
+WITH interfaceview::IV::blsclient;
+WITH Taste;
+WITH DataView;
+WITH TASTE_IV_Properties;
+SUBPROGRAM PI_clock
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_clock;
+
+SUBPROGRAM IMPLEMENTATION PI_clock.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 1000 ms;
+END PI_clock.others;
+
+SUBPROGRAM RI_motion_command
+FEATURES
+  mc : IN PARAMETER DataView::Base_commands_Motion2D {
+    Taste::encoding => NATIVE;
+  };
+END RI_motion_command;
+
+SUBPROGRAM IMPLEMENTATION RI_motion_command.others
+END RI_motion_command.others;
+
+SYSTEM dummyProducer
+FEATURES
+  PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::dummyProducer::PI_clock.others {
+    Taste::coordinates => "12599 72254";
+    Taste::RCMoperationKind => cyclic;
+    Taste::RCMperiod => 1000 ms;
+    Taste::Deadline => 1000 ms;
+    Taste::InterfaceName => "clock";
+  };
+  RI_motion_command : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_motion_command.others {
+    Taste::coordinates => "47357 83369";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "motion_command";
+    Taste::labelInheritance => "true";
+  };
+PROPERTIES
+  Source_Language => (CPP);
+  Taste::Active_Interfaces => any;
+END dummyProducer;
+
+SYSTEM IMPLEMENTATION dummyProducer.others
+END dummyProducer.others;
+
+END interfaceview::IV::dummyProducer;
+
+PACKAGE interfaceview::IV::dummyConsumer
+PUBLIC
+
+WITH Taste;
+WITH DataView;
+WITH TASTE_IV_Properties;
+SUBPROGRAM PI_rbs
+FEATURES
+  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
+    Taste::encoding => NATIVE;
+  };
+PROPERTIES
+  Taste::Associated_Queue_Size => 100;
+END PI_rbs;
+
+SUBPROGRAM IMPLEMENTATION PI_rbs.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 100 ms;
+END PI_rbs.others;
+
+SYSTEM dummyConsumer
+FEATURES
+  PI_rbs : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
+    Taste::coordinates => "228619 100782";
+    Taste::RCMoperationKind => sporadic;
+    Taste::RCMperiod => 1000 ms;
+    Taste::Deadline => 100 ms;
+    Taste::InterfaceName => "rbs";
+  };
+PROPERTIES
+  Source_Language => (CPP);
+  Taste::Active_Interfaces => any;
+END dummyConsumer;
+
+SYSTEM IMPLEMENTATION dummyConsumer.others
+END dummyConsumer.others;
+
+END interfaceview::IV::dummyConsumer;
+
+PACKAGE interfaceview::IV
+PUBLIC
+
+WITH interfaceview::IV::blsclient;
+WITH interfaceview::IV::dummyProducer;
+WITH interfaceview::IV::dummyConsumer;
+WITH Taste;
+WITH DataView;
+WITH TASTE_IV_Properties;
+SYSTEM interfaceview
+PROPERTIES
+  Taste::dataView => ("DataView");
+  Taste::dataViewPath => ("DataView.aadl");
+END interfaceview;
+
+SYSTEM IMPLEMENTATION interfaceview.others
+SUBCOMPONENTS
+  blsclient : SYSTEM interfaceview::IV::blsclient::blsclient.others {
+    Taste::coordinates => "104490 69290 174974 140061";
+  };
+  dummyProducer : SYSTEM interfaceview::IV::dummyProducer::dummyProducer.others {
+    Taste::coordinates => "12599 72254 47357 137467";
+  };
+  dummyConsumer : SYSTEM interfaceview::IV::dummyConsumer::dummyConsumer.others {
+    Taste::coordinates => "228619 74847 288347 143766";
+  };
+CONNECTIONS
+  blsclient_PI_motion_command_dummyProducer_RI_motion_command : SUBPROGRAM ACCESS blsclient.PI_motion_command -> dummyProducer.RI_motion_command {
+    Taste::coordinates => "47357 83369 75923 83369 75923 87815 104490 87815";
+  };
+  dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
+    Taste::coordinates => "174974 121160 201796 121160 201796 100782 228619 100782";
+  };
+END interfaceview.others;
+
+PROPERTIES
+  Taste::dataView => ("DataView");
+  Taste::dataViewPath => ("DataView.aadl");
+  Taste::coordinates => "0 0 297000 210000";
+  Taste::version => "2.0";
+END interfaceview::IV;
+

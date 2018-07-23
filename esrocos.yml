@@ -1,0 +1,5 @@
+ASNACN_DIR: dataview/
+PROJECT_NAME: plex-blsclient
+deps:
+- types/base: ''
+- types/base_support: ''
