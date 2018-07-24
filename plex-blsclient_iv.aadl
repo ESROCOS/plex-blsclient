@@ -39,14 +39,14 @@ END RI_rigidBodyState.others;
 SYSTEM blsclient
 FEATURES
   PI_motion_command : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_motion_command.others {
-    Taste::coordinates => "104490 87815";
+    Taste::coordinates => "104250 87815";
     Taste::RCMoperationKind => sporadic;
     Taste::RCMperiod => 1000 ms;
     Taste::Deadline => 10 ms;
     Taste::InterfaceName => "motion_command";
   };
   RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
-    Taste::coordinates => "174974 121160";
+    Taste::coordinates => "174734 121160";
     Taste::RCMoperationKind => any;
     Taste::InterfaceName => "rigidBodyState";
     Taste::labelInheritance => "false";
@@ -54,6 +54,7 @@ FEATURES
 PROPERTIES
   Source_Language => (CPP);
   Taste::Active_Interfaces => any;
+  Source_Text => ("blsclient.zip");
 END blsclient;
 
 SYSTEM IMPLEMENTATION blsclient.others
@@ -174,7 +175,7 @@ END interfaceview;
 SYSTEM IMPLEMENTATION interfaceview.others
 SUBCOMPONENTS
   blsclient : SYSTEM interfaceview::IV::blsclient::blsclient.others {
-    Taste::coordinates => "104490 69290 174974 140061";
+    Taste::coordinates => "104250 69290 174734 140061";
   };
   dummyProducer : SYSTEM interfaceview::IV::dummyProducer::dummyProducer.others {
     Taste::coordinates => "12599 72254 47357 137467";
@@ -184,10 +185,10 @@ SUBCOMPONENTS
   };
 CONNECTIONS
   blsclient_PI_motion_command_dummyProducer_RI_motion_command : SUBPROGRAM ACCESS blsclient.PI_motion_command -> dummyProducer.RI_motion_command {
-    Taste::coordinates => "47357 83369 75923 83369 75923 87815 104490 87815";
+    Taste::coordinates => "47357 83369 75923 83369 75923 87815 104250 87815";
   };
   dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
-    Taste::coordinates => "174974 121160 201796 121160 201796 100782 228619 100782";
+    Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";
   };
 END interfaceview.others;
 
