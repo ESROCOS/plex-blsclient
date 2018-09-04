@@ -3,4 +3,4 @@ PROJECT_NAME: plex-blsclient
 deps:
 - types/base: ''
 - types/base_support: ''
-- external/static_opencv: ''
+- opencv: ''
