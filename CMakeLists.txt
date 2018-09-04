@@ -42,7 +42,7 @@ esrocos_export_function("blsclient" "share/taste_components/plex-blsclient")
 #uncomment to export PKG-CONFIG-file
 esrocos_export_pkgconfig( VERSION 1.0
                           DESCRIPTION "none"
-                          REQUIRES base-types base_support eigen3 plex-bridget
+                          REQUIRES base-types base_support eigen3 plex-bridget opencv
                           LIBS ""
                           STATIC_LIBS "" 
                           C_FLAGS ""

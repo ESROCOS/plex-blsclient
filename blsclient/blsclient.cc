@@ -27,14 +27,14 @@ void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
    rbs->cov_angular_velocity.data.nCount = 9;
 }
 
-BridgetAPI rover;
+std::string ip_addr("127.0.0.1");
+bridgetAPI::BridgetAPI rover(ip_addr,1023);
 
 void blsclient_startup()
 {
    base::Vector3d translation(1.0, 0.0, 0.0);
    init_rbs(&bs);
    asn1Scc_Vector3d_toAsn1(bs.position, translation);
-   rover = BridgetAPI("127.0.0.1",1023);
 }
 
 void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
