@@ -25,6 +25,7 @@ PUBLIC
 WITH interfaceview::IV::blsclient;
 WITH interfaceview::IV::dummyProducer;
 WITH interfaceview::IV::dummyConsumer;
+WITH interfaceview::IV::dummyPanTiltProducer;
 WITH ocarina_processors_x86;
 WITH deploymentview::DV::Node1;
 WITH Taste;
@@ -45,6 +46,9 @@ SUBCOMPONENTS
   IV_dummyConsumer : SYSTEM interfaceview::IV::dummyConsumer::dummyConsumer.others {
     Taste::FunctionName => "dummyConsumer";
   };
+  IV_dummyPanTiltProducer : SYSTEM interfaceview::IV::dummyPanTiltProducer::dummyPanTiltProducer.others {
+    Taste::FunctionName => "dummyPanTiltProducer";
+  };
   x86_partition : PROCESS deploymentview::DV::Node1::x86_partition.others {
     Taste::coordinates => "89639 85126 183073 132513";
     Deployment::Port_Number => 0;
@@ -56,6 +60,7 @@ PROPERTIES
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_blsclient;
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyProducer;
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyConsumer;
+  Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyPanTiltProducer;
   Actual_Processor_Binding => (reference (x86_linux)) APPLIES TO x86_partition;
 END Node1.others;
 
@@ -74,6 +79,6 @@ PROPERTIES
   Taste::coordinates => "0 0 297000 210000";
   Taste::version => "2.0";
   Taste::interfaceView => "plex-blsclient_iv.aadl";
-  Taste::HWLibraries => ("../../tool-inst/share/ocarina/AADLv2/ocarina_components.aadl");
+  Taste::HWLibraries => ("../../../tool-inst/share/ocarina/AADLv2/ocarina_components.aadl");
 END deploymentview::DV;
 

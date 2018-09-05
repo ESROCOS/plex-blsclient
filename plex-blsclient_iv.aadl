@@ -26,6 +26,20 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 20 ms;
 END PI_motion_command.others;
 
+SUBPROGRAM PI_pan_tilt
+FEATURES
+  cmd : IN PARAMETER DataView::Base_commands_Joints {
+    Taste::encoding => NATIVE;
+  };
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_pan_tilt;
+
+SUBPROGRAM IMPLEMENTATION PI_pan_tilt.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 0 ms;
+END PI_pan_tilt.others;
+
 SUBPROGRAM RI_rigidBodyState
 FEATURES
   rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
@@ -44,6 +58,13 @@ FEATURES
     Taste::RCMperiod => 1000 ms;
     Taste::Deadline => 10 ms;
     Taste::InterfaceName => "motion_command";
+  };
+  PI_pan_tilt : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_pan_tilt.others {
+    Taste::coordinates => "137054 69290";
+    Taste::RCMoperationKind => sporadic;
+    Taste::RCMperiod => 0 ms;
+    Taste::Deadline => 0 ms;
+    Taste::InterfaceName => "pan_tilt";
   };
   RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
     Taste::coordinates => "174734 121160";
@@ -157,12 +178,65 @@ END dummyConsumer.others;
 
 END interfaceview::IV::dummyConsumer;
 
+PACKAGE interfaceview::IV::dummyPanTiltProducer
+PUBLIC
+
+WITH interfaceview::IV::blsclient;
+WITH Taste;
+WITH DataView;
+WITH TASTE_IV_Properties;
+SUBPROGRAM PI_clock
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_clock;
+
+SUBPROGRAM IMPLEMENTATION PI_clock.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 0 ms;
+END PI_clock.others;
+
+SUBPROGRAM RI_pan_tilt
+FEATURES
+  cmd : IN PARAMETER DataView::Base_commands_Joints {
+    Taste::encoding => NATIVE;
+  };
+END RI_pan_tilt;
+
+SUBPROGRAM IMPLEMENTATION RI_pan_tilt.others
+END RI_pan_tilt.others;
+
+SYSTEM dummyPanTiltProducer
+FEATURES
+  PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::dummyPanTiltProducer::PI_clock.others {
+    Taste::coordinates => "130957 12594";
+    Taste::RCMoperationKind => cyclic;
+    Taste::RCMperiod => 0 ms;
+    Taste::Deadline => 0 ms;
+    Taste::InterfaceName => "clock";
+  };
+  RI_pan_tilt : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_pan_tilt.others {
+    Taste::coordinates => "134244 38934";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "pan_tilt";
+    Taste::labelInheritance => "true";
+  };
+PROPERTIES
+  Source_Language => (C);
+  Taste::Active_Interfaces => any;
+END dummyPanTiltProducer;
+
+SYSTEM IMPLEMENTATION dummyPanTiltProducer.others
+END dummyPanTiltProducer.others;
+
+END interfaceview::IV::dummyPanTiltProducer;
+
 PACKAGE interfaceview::IV
 PUBLIC
 
 WITH interfaceview::IV::blsclient;
 WITH interfaceview::IV::dummyProducer;
 WITH interfaceview::IV::dummyConsumer;
+WITH interfaceview::IV::dummyPanTiltProducer;
 WITH Taste;
 WITH DataView;
 WITH TASTE_IV_Properties;
@@ -183,9 +257,15 @@ SUBCOMPONENTS
   dummyConsumer : SYSTEM interfaceview::IV::dummyConsumer::dummyConsumer.others {
     Taste::coordinates => "228619 74847 288347 143766";
   };
+  dummyPanTiltProducer : SYSTEM interfaceview::IV::dummyPanTiltProducer::dummyPanTiltProducer.others {
+    Taste::coordinates => "109003 12594 153999 38934";
+  };
 CONNECTIONS
   blsclient_PI_motion_command_dummyProducer_RI_motion_command : SUBPROGRAM ACCESS blsclient.PI_motion_command -> dummyProducer.RI_motion_command {
     Taste::coordinates => "47357 83369 75923 83369 75923 87815 104250 87815";
+  };
+  blsclient_PI_pan_tilt_dummyPanTiltProducer_RI_pan_tilt : SUBPROGRAM ACCESS blsclient.PI_pan_tilt -> dummyPanTiltProducer.RI_pan_tilt {
+    Taste::coordinates => "134244 38934 134244 54112 137054 54112 137054 69290";
   };
   dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
     Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";

@@ -4,6 +4,7 @@
 #include "base_support/Base-samples-RigidBodyStateConvert.hpp"
 #include <base_support/Base-commands-Motion2DConvert.hpp>
 #include "base_support/OpaqueConversion.hpp"
+#include <iostream>
 #include <cmath>
 
 asn1SccBase_samples_RigidBodyState bs;
@@ -47,3 +48,7 @@ void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
   blsclient_RI_rigidBodyState(&bs);
 }
 
+void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
+{
+    std::cout << "[blsclient_PI_pan_tilt] Would move pan tilt unit\n";
+}
