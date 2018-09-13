@@ -26,7 +26,7 @@ void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
 void blsclient_startup()
 {
    base::Vector3d translation(1.0, 0.0, 0.0);
-   init_rbs(&bs)
+   init_rbs(&bs);
    asn1Scc_Vector3d_toAsn1(bs.position, translation);
 }
 
