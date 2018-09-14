@@ -9,6 +9,7 @@
 #include <cmath>
 
 asn1SccBase_samples_RigidBodyState bs;
+base::commands::Motion2D base_mc;
 
 void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
 {
@@ -32,12 +33,14 @@ void blsclient_startup()
 
 void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
 {
-  base::commands::Motion2D base_mc;
+  asn1SccBase_commands_Motion2D_fromAsn1(base_mc, *IN_mc);
+  std::cout << "[blsclient motion_command] " << base_mc.translation << " " << base_mc.rotation << std::endl;
+}
+
+void blsclient_PI_clock(){
+
   base::Vector3d translation(0.0,0.0,0.0);
   base::Quaterniond orientation;
-
-  asn1SccBase_commands_Motion2D_fromAsn1(base_mc, *IN_mc);
- 
   // get current values
   asn1Scc_Vector3d_fromAsn1(translation, bs.position);
   asn1Scc_Quaterniond_fromAsn1(orientation, bs.orientation);
@@ -60,7 +63,9 @@ void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
   // new Body state
   asn1Scc_Vector3d_toAsn1(bs.position, translation_);
   asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
-  std::cout << "[blsclient_PI_motion_command] Emitting rigid body state\n";
+
+  std::cout << "[blsclient_PI_clock] Emitting rigid body state\n";
+  std::cout << "[blsclient_PI_clock] " << translation_.transpose() << std::endl;
   blsclient_RI_rigidBodyState(&bs);
 }
 
