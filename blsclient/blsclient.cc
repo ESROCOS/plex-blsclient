@@ -2,8 +2,10 @@
 
 #include "blsclient.h"
 #include "base_support/Base-samples-RigidBodyStateConvert.hpp"
+#include "base_support/Base-TimeConvert.hpp"
 #include <base_support/Base-commands-Motion2DConvert.hpp>
 #include "base_support/OpaqueConversion.hpp"
+#include <base/samples/RigidBodyState.hpp>
 #include <iostream>
 #include <cstring>
 #include <cmath>
@@ -59,10 +61,11 @@ void blsclient_PI_clock(){
   float f_orientation_ = fmod((f_orientation + base_mc.rotation*M_PI/4.0),2*M_PI);
 
   base::Quaterniond orientation_(base::AngleAxisd(f_orientation_, base::Vector3d::UnitZ()));
-
+  base::Time time = base::Time::now();
   // new Body state
   asn1Scc_Vector3d_toAsn1(bs.position, translation_);
   asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
+  asn1SccBase_Time_toAsn1(bs.time, time);
 
   std::cout << "[blsclient_PI_clock] Emitting rigid body state\n";
   std::cout << "[blsclient_PI_clock] " << translation_.transpose() << std::endl;
