@@ -40,6 +40,16 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_pan_tilt.others;
 
+SUBPROGRAM PI_clock
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_clock;
+
+SUBPROGRAM IMPLEMENTATION PI_clock.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 0 ms;
+END PI_clock.others;
+
 SUBPROGRAM RI_rigidBodyState
 FEATURES
   rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
@@ -49,14 +59,6 @@ END RI_rigidBodyState;
 
 SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
 END RI_rigidBodyState.others;
-
-SUBPROGRAM PI_clock
-END PI_clock;
-
-SUBPROGRAM IMPLEMENTATION PI_clock.others
-PROPERTIES
-  Compute_Execution_Time => 0 ms .. 0 ms;
-END PI_clock.others;
 
 SYSTEM blsclient
 FEATURES
@@ -74,21 +76,23 @@ FEATURES
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "pan_tilt";
   };
+  PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_clock.others {
+    Taste::coordinates => "160566 69290";
+    Taste::RCMoperationKind => cyclic;
+    Taste::RCMperiod => 1000 ms;
+    Taste::Deadline => 0 ms;
+    Taste::InterfaceName => "clock";
+  };
   RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
     Taste::coordinates => "174734 121160";
     Taste::RCMoperationKind => any;
     Taste::InterfaceName => "rigidBodyState";
     Taste::labelInheritance => "false";
   };
-  PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_clock.others {
-    Taste::coordinates => "160566 69290";
-    Taste::RCMoperationKind => cyclic;
-    Taste::RCMperiod => 1000 ms;
-    Taste::InterfaceName => "clock";
-  };
 PROPERTIES
   Source_Language => (CPP);
   Taste::Active_Interfaces => any;
+  Source_Text => ("blsclient.zip");
 END blsclient;
 
 SYSTEM IMPLEMENTATION blsclient.others
