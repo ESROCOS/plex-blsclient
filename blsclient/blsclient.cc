@@ -10,8 +10,8 @@
 #include <cstring>
 #include <cmath>
 
-asn1SccBase_samples_RigidBodyState bs;
-base::commands::Motion2D base_mc;
+static asn1SccBase_samples_RigidBodyState bs;
+static base::commands::Motion2D base_mc;
 
 void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
 {
@@ -36,7 +36,9 @@ void blsclient_startup()
 void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
 {
   asn1SccBase_commands_Motion2D_fromAsn1(base_mc, *IN_mc);
+#ifdef DEBUG
   std::cout << "[blsclient motion_command] " << base_mc.translation << " " << base_mc.rotation << std::endl;
+#endif
 }
 
 void blsclient_PI_clock(){
@@ -67,12 +69,15 @@ void blsclient_PI_clock(){
   asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
   asn1SccBase_Time_toAsn1(bs.time, time);
 
-  std::cout << "[blsclient_PI_clock] Emitting rigid body state\n";
+#ifdef DEBUG
   std::cout << "[blsclient_PI_clock] " << translation_.transpose() << std::endl;
+#endif
   blsclient_RI_rigidBodyState(&bs);
 }
 
 void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 {
+#ifdef DEBUG
     std::cout << "[blsclient_PI_pan_tilt] Would move pan tilt unit\n";
+#endif
 }
