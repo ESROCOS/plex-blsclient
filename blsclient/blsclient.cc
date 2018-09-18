@@ -38,6 +38,11 @@ void blsclient_startup()
    base::Vector3d translation(1.0, 0.0, 0.0);
    init_rbs(&bs);
    asn1Scc_Vector3d_toAsn1(bs.position, translation);
+   #ifdef DUMMY
+     // do nothing
+   #else
+     rover.startMovementControl();
+   #endif
 
    #ifdef DEBUG
      std::cout << "[blsclient startup] rover connected: " << rover.isConnected()  << std::endl;
@@ -71,7 +76,6 @@ void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
   angle = angle > 0.48? 0.48 : angle;
   angle = angle < -0.48? -0.48 : angle;
 
-  rover.startMovementControl();
   rover.ackermannMove(speed,angle);
 #endif
 }
