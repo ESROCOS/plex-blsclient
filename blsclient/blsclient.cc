@@ -126,9 +126,9 @@ void blsclient_PI_clock(){
   // assing new values
 
   translation_ = base::Vector3d(p.getPosX(), p.getPosY(), p.getPosZ());
-  orientation_ = base::AngleAxisd(p.getPosYaw(), base::Vector3d::UnitZ()) *
+  orientation_ = base::AngleAxisd(p.getPosRoll(), base::Vector3d::UnitX()) *
                  base::AngleAxisd(p.getPosPitch(), base::Vector3d::UnitY()) *
-                 base::AngleAxisd(p.getPosRoll(), base::Vector3d::UnitX());
+                 base::AngleAxisd(p.getPosYaw(), base::Vector3d::UnitZ());
 
 #endif
 
@@ -136,9 +136,6 @@ void blsclient_PI_clock(){
 
   // fill new Body state
   asn1Scc_Vector3d_toAsn1(bs.position, translation_);
-:q
-:q
-:wq
   asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
   asn1SccBase_Time_toAsn1(bs.time, time);
 
