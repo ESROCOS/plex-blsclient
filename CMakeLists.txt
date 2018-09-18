@@ -32,7 +32,7 @@ esrocos_init()
 
 #uncomment if you want to add dependencies for the build process (only required in integration projects)
 esrocos_add_dependency(PARTITION x86_partition
-		       MODULES   base-types base_support eigen3)
+		       MODULES   plex-blsclient)
 
 ########### FOR COMPONENT PROJECTS ################
 
@@ -42,7 +42,7 @@ esrocos_export_function("blsclient" "share/taste_components/plex-blsclient")
 #uncomment to export PKG-CONFIG-file
 esrocos_export_pkgconfig( VERSION 1.0
                           DESCRIPTION "none"
-                          REQUIRES base-types base_support
+                          REQUIRES base-types base_support eigen3 plex-bridget
                           LIBS ""
                           STATIC_LIBS "" 
                           C_FLAGS ""
