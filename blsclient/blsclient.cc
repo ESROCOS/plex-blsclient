@@ -17,7 +17,7 @@ static base::commands::Motion2D base_mc;
 #ifdef DUMMY
   // nothing to do
 #else
-static bridgetAPI::BridgetAPI rover();
+static bridgetAPI::BridgetAPI rover;
 #endif
 
 void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
