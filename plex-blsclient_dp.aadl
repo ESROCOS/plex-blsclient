@@ -26,6 +26,7 @@ WITH interfaceview::IV::blsclient;
 WITH interfaceview::IV::dummyProducer;
 WITH interfaceview::IV::dummyConsumer;
 WITH interfaceview::IV::dummyPanTiltProducer;
+WITH interfaceview::IV::dummyLights;
 WITH ocarina_processors_x86;
 WITH deploymentview::DV::Node1;
 WITH Taste;
@@ -49,6 +50,9 @@ SUBCOMPONENTS
   IV_dummyPanTiltProducer : SYSTEM interfaceview::IV::dummyPanTiltProducer::dummyPanTiltProducer.others {
     Taste::FunctionName => "dummyPanTiltProducer";
   };
+  IV_dummyLights : SYSTEM interfaceview::IV::dummyLights::dummyLights.others {
+    Taste::FunctionName => "dummyLights";
+  };
   x86_partition : PROCESS deploymentview::DV::Node1::x86_partition.others {
     Taste::coordinates => "89639 85126 183073 132513";
     Deployment::Port_Number => 0;
@@ -61,6 +65,7 @@ PROPERTIES
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyProducer;
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyConsumer;
   Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyPanTiltProducer;
+  Taste::APLC_Binding => (reference (x86_partition)) APPLIES TO IV_dummyLights;
   Actual_Processor_Binding => (reference (x86_linux)) APPLIES TO x86_partition;
 END Node1.others;
 
