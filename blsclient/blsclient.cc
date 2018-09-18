@@ -3,6 +3,7 @@
 #include "blsclient.h"
 #include "base_support/Base-samples-RigidBodyStateConvert.hpp"
 #include "base_support/Base-TimeConvert.hpp"
+#include "base_support/Base-commands-JointsConvert.hpp"
 #include <base_support/Base-commands-Motion2DConvert.hpp>
 #include "base_support/OpaqueConversion.hpp"
 #include <base/samples/RigidBodyState.hpp>
@@ -183,10 +184,26 @@ void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 #ifdef DEBUG
     std::cout << "[blsclient_PI_pan_tilt] Would move pan tilt unit\n";
 #endif
+
+#ifdef DUMMY
+  // nothing to do
+#else  
   if (!rover.isBridgetConnected()){     
     #ifdef DEBUG
       std::cout << "[blsclient_PI_pan_tilt] rover not connected" << std::endl;
     #endif
     return;
   }
+
+  double pan;
+  double tilt;
+
+  pan = pan > 144.0 ? 144.0 : pan;
+  pan = pan < -144.0 ? -144.0 : pan;
+
+  tilt = tilt > 28.0 ? 28.0 : tilt;
+  tilt = tilt < -28.0 ? -28.0 : tilt;
+
+  rover.setCameraAngle(pan, tilt);
+#endif
 }
