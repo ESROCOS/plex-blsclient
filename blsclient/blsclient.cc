@@ -195,8 +195,15 @@ void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
     return;
   }
 
-  double pan;
-  double tilt;
+  base::samples::Joints base_joints;
+
+  double pan = 0.0;
+  double tilt = 0.0;
+
+  asn1SccBase_commands_Joints_fromAsn1(base_joints, *IN_cmd);
+
+  pan =  base_joints.elements[0].position;
+  tilt = base_joints.elements[1].position;
 
   pan = pan > 144.0 ? 144.0 : pan;
   pan = pan < -144.0 ? -144.0 : pan;
