@@ -1,4 +1,5 @@
 /* User code: This file will not be overwritten by TASTE. */
+#define _USE_MATH_DEFINES
 
 #include "blsclient.h"
 #include "base_support/Base-samples-RigidBodyStateConvert.hpp"
@@ -14,6 +15,7 @@
 
 static asn1SccBase_samples_RigidBodyState bs;
 static base::commands::Motion2D base_mc;
+
 #ifdef DUMMY
   // nothing to do
 #else
@@ -70,8 +72,8 @@ void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
 
   double angle = base_mc.rotation;
 
-  speed = speed > 0.04? 0.04 : speed;
-  speed = speed < -0.04? -0.04 : speed;
+  speed = speed > 4 ? 4 : speed;
+  speed = speed < -4 ? -4 : speed;
 
   angle = angle > 0.48? 0.48 : angle;
   angle = angle < -0.48? -0.48 : angle;
@@ -211,8 +213,8 @@ void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 
   asn1SccBase_commands_Joints_fromAsn1(base_joints, *IN_cmd);
 
-  pan =  base_joints.elements[0].position;
-  tilt = base_joints.elements[1].position;
+  pan =  base_joints.elements[0].position * 180 / M_PI;
+  tilt = base_joints.elements[1].position * 180 / M_PI;
 
   pan = pan > 144.0 ? 144.0 : pan;
   pan = pan < -144.0 ? -144.0 : pan;
