@@ -55,8 +55,9 @@ void updatePanTilt(){
 
     bridgetAPI::Position p;
     rover.getPositionTelemetry(p);
-    pan = p.getPanAngle();
-    tilt = p.getTiltAngle();
+//    pan = p.getPanAngle();
+//    tilt = p.getTiltAngle();
+
   #ifdef DEBUG 
     std::cout << "[blsclient_updatePanTilt] pan: " << pan << " tilt: " << tilt << std::endl;
   #endif
@@ -64,6 +65,7 @@ void updatePanTilt(){
 #endif
 
   // current target pan/tilt + speed * delta_t in degree
+ 
   pan = pan + 0.1 * pspeed;
   tilt = tilt + 0.1 * tspeed;
 
@@ -137,6 +139,7 @@ void blsclient_startup()
    #ifdef DUMMY
      // do nothing
    #else
+     rover.switchControlMode();
      rover.startMovementControl();
    #endif
 
@@ -187,7 +190,16 @@ void blsclient_PI_clock(){
   } else {
   
     #ifdef DEBUG
+      
+
+      bridgetAPI::Telemetry t;
+      rover.getTelemetry(t);
+      const int lcm = t.getLocomotionMode();
+      const int bls = t.getBlsMode();
+
       std::cout << "[blsclient_clock] call bridget api\n"
+                << "bls mode (1): " << bls << "\n"
+                << "lc  mode (0): " << lcm << "\n"
                 << "white lights: " << whiteLightsOn << "\n"
                 << "uv lights:    " << UVLightsOn << "\n"
                 << "move speed:   " << speed << " r: " << angle << "\n"
