@@ -12,6 +12,7 @@
 #include <cstring>
 #include <cmath>
 #include <bridgetAPI.h>
+#include <unistd.h>
 
 static asn1SccBase_samples_RigidBodyState bs;
 static base::commands::Motion2D base_mc;
@@ -106,7 +107,7 @@ void updateBodyState(){
   if (!rover.isBridgetConnected()){     
     #ifdef DEBUG
       std::cout << "[blsclient_updateBodyState] rover not connected" << std::endl;
-    #endif 
+    #endif
   } else {
   // retrieve current values
 
@@ -139,7 +140,26 @@ void blsclient_startup()
    #ifdef DUMMY
      // do nothing
    #else
-     rover.switchControlMode();
+     while (!rover.isBridgetConnected()) {
+       std::cout << "[blsclient startup] waiting for bridget to connect" << std::endl;     
+       usleep(500000);
+     }
+
+     bridgetAPI::Telemetry t;
+     rover.getTelemetry(t);
+     const int lcm = t.getLocomotionMode();
+     const int bls = t.getBlsMode();
+
+     if(bls != 1) {
+       rover.switchControlMode();
+       std::cout << "[blsclient startup] switching control mode" << std::endl;
+     }
+      
+     if(lcm != 0) {
+       rover.pointTurnToggle();
+       std::cout << "[blsclient startup] switching to ackermann mode" << std::endl;
+     }
+
      rover.startMovementControl();
    #endif
 
