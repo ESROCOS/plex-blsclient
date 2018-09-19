@@ -16,6 +16,13 @@
 static asn1SccBase_samples_RigidBodyState bs;
 static base::commands::Motion2D base_mc;
 
+static double pan = 0, tilt = 0;
+static double pspeed = 0, tspeed = 0;
+
+static double speed = 0, angle = 0;
+static bool whiteLightsOn = false;
+static bool UVLightsOn = false;
+
 #ifdef DUMMY
   // nothing to do
 #else
@@ -35,11 +42,98 @@ void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
    rbs->cov_angular_velocity.data.nCount = 9;
 }
 
+void updatePanTilt(){
+#ifdef DUMMY
+  // nothing to do
+#else    
+  if (!rover.isBridgetConnected()){     
+    #ifdef DEBUG
+      std::cout << "[blsclient_updatePanTilt] rover not connected" << std::endl;
+    #endif 
+  } else {
+  // get current pan tilt
+
+    bridgetAPI::Position p;
+    rover.getPositionTelemetry(p);
+    pan = p.getPanAngle();
+    tilt = p.getTiltAngle();
+  #ifdef DEBUG 
+    std::cout << "[blsclient_updatePanTilt] pan: " << pan << " tilt: " << tilt << std::endl;
+  #endif
+  }
+#endif
+
+  // current target pan/tilt + speed * delta_t in degree
+  pan = pan + 0.1 * pspeed;
+  tilt = tilt + 0.1 * tspeed;
+
+  pan = pan > 144.0 ? 144.0 : pan;
+  pan = pan < -144.0 ? -144.0 : pan;
+
+  tilt = tilt > 28.0 ? 28.0 : tilt;
+  tilt = tilt < -28.0 ? -28.0 : tilt;
+}
+void updateBodyState(){
+
+  base::Vector3d translation_(0,0,0);
+  base::Quaterniond orientation_(0,0,0,1);
+
+#ifdef DUMMY
+  // get old values
+  base::Vector3d translation();
+  base::Quaterniond orientation();
+
+  asn1Scc_Vector3d_fromAsn1(translation, bs.position);
+  asn1Scc_Quaterniond_fromAsn1(orientation, bs.orientation);
+  
+  const float x = translation[0]; 
+  const float y = translation[1];
+
+  const float f_orientation = base::getYaw(orientation); 
+
+  // calculate new values
+  const float x_ = base_mc.translation * cos(f_orientation);
+  const float y_ = base_mc.translation * sin(f_orientation); 
+  const float f_orientation_ = fmod((f_orientation + base_mc.rotation*M_PI/4.0),2*M_PI);
+
+  // assign new values
+  translation_ = base::Vector3d(x+x_,y+y_,0.0);
+  orientation_ = base::Quaterniond (base::AngleAxisd(f_orientation_, base::Vector3d::UnitZ()));
+
+#else 
+  if (!rover.isBridgetConnected()){     
+    #ifdef DEBUG
+      std::cout << "[blsclient_updateBodyState] rover not connected" << std::endl;
+    #endif 
+  } else {
+  // retrieve current values
+
+  bridgetAPI::Position p;
+  rover.getPositionTelemetry(p);
+  
+  // assing new values
+  translation_ = base::Vector3d(p.getPosX(), p.getPosY(), p.getPosZ());
+  orientation_ = base::AngleAxisd(p.getPosRoll(), base::Vector3d::UnitX()) *
+                 base::AngleAxisd(p.getPosPitch(), base::Vector3d::UnitY()) *
+                 base::AngleAxisd(p.getPosYaw(), base::Vector3d::UnitZ());
+  }
+#endif
+  // create new timestamp
+  base::Time time = base::Time::now();
+
+  // fill body state with current telemetry data
+  asn1Scc_Vector3d_toAsn1(bs.position, translation_);
+  asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
+  asn1SccBase_Time_toAsn1(bs.time, time);
+
+#ifdef DEBUG
+  std::cout << "[blsclient_updateBodyState]\n\t" << translation_.transpose() << "\n\t" << orientation_.vec().transpose() << std::endl;
+#endif
+}
+
 void blsclient_startup()
 {
-   base::Vector3d translation(1.0, 0.0, 0.0);
    init_rbs(&bs);
-   asn1Scc_Vector3d_toAsn1(bs.position, translation);
    #ifdef DUMMY
      // do nothing
    #else
@@ -47,7 +141,7 @@ void blsclient_startup()
    #endif
 
    #ifdef DEBUG
-     std::cout << "[blsclient startup] rover connected: " << rover.isConnected()  << std::endl;
+     std::cout << "[blsclient startup] rover connected: " << rover.isBridgetConnected()  << std::endl;
    #endif
 }
 
@@ -62,166 +156,85 @@ void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
 #ifdef DUMMY
   // nothing to do
 #else
-  double speed = base_mc.translation;
-  if (!rover.isBridgetConnected()){     
-    #ifdef DEBUG
-      std::cout << "[blsclient_PI_motion_command] rover not connected" << std::endl;
-    #endif
-    return;
-  }
+  // calculate new values for ackermann movement
+  speed = base_mc.translation*100;
+  angle = base_mc.rotation;
 
-  double angle = base_mc.rotation;
-
+  // cap values to min / max
   speed = speed > 4 ? 4 : speed;
   speed = speed < -4 ? -4 : speed;
 
   angle = angle > 0.48? 0.48 : angle;
   angle = angle < -0.48? -0.48 : angle;
-
-  rover.ackermannMove(speed,angle);
 #endif
 }
 
 void blsclient_PI_clock(){
-
 #ifdef DEBUG
   std::cout << "[blsclient_PI_clock] tick" << std::endl;
 #endif
 
-  base::Vector3d translation_;
-  base::Quaterniond orientation_;
-
-#ifdef DUMMY
-
-  // get old values
-  base::Vector3d translation(0.0,0.0,0.0);
-  base::Quaterniond orientation;
-
-  asn1Scc_Vector3d_fromAsn1(translation, bs.position);
-  asn1Scc_Quaterniond_fromAsn1(orientation, bs.orientation);
-  
-  const float x = translation[0]; 
-  const float y = translation[1];
-
-  const float f_orientation = base::getYaw(orientation); 
-
-  // calculate new values
-
-  const float x_ = base_mc.translation * cos(f_orientation);
-  const float y_ = base_mc.translation * sin(f_orientation); 
-
-  const float f_orientation_ = fmod((f_orientation + base_mc.rotation*M_PI/4.0),2*M_PI);
-
-  // assign new values
-
-  translation_ = base::Vector3d(x+x_,y+y_,0.0);
-  orientation_ = base::Quaterniond (base::AngleAxisd(f_orientation_, base::Vector3d::UnitZ()));
-
-#else 
-  if (!rover.isBridgetConnected()){     
-    #ifdef DEBUG
-      std::cout << "[blsclient_PI_clock] rover not connected" << std::endl;
-    #endif
-    return;
-  }
-  // retrieve current values
-
-  bridgetAPI::Position p;
-  rover.getPositionTelemetry(p);
-  
-  // assing new values
-
-  translation_ = base::Vector3d(p.getPosX(), p.getPosY(), p.getPosZ());
-  orientation_ = base::AngleAxisd(p.getPosRoll(), base::Vector3d::UnitX()) *
-                 base::AngleAxisd(p.getPosPitch(), base::Vector3d::UnitY()) *
-                 base::AngleAxisd(p.getPosYaw(), base::Vector3d::UnitZ());
-
-#endif
-
-  base::Time time = base::Time::now();
-
-  // fill new Body state
-  asn1Scc_Vector3d_toAsn1(bs.position, translation_);
-  asn1Scc_Quaterniond_toAsn1(bs.orientation, orientation_);
-  asn1SccBase_Time_toAsn1(bs.time, time);
-
-#ifdef DEBUG
-  std::cout << "[blsclient_PI_clock] " << translation_.transpose() << std::endl;
-#endif
+  updateBodyState();
+  updatePanTilt();
 
   blsclient_RI_rigidBodyState(&bs);
-}
 
-void blsclient_PI_whiteLightsOn(){
-#ifdef DEBUG
-    std::cout << "[blsclient_whiteLightsOn] called" << std::endl;
-#endif
-
-#ifdef DUMMY
-  // nothing to do
-#else
+#ifndef DUMMY
   if (!rover.isBridgetConnected()){     
     #ifdef DEBUG
-      std::cout << "[blsclient_whiteLightsOn] rover not connected" << std::endl;
+      std::cout << "[blsclient_clock] rover not connected" << std::endl;
     #endif
-    return;
-  }
-
-  rover.turnWhiteLightsOn();
-#endif
-}
-
-void blsclient_PI_whiteLightsOff(){
-#ifdef DEBUG
-    std::cout << "[blsclient_whiteLightsOff] called" << std::endl;
-#endif
-    
-#ifdef DUMMY
-  // nothing to do
-#else
-  if (!rover.isBridgetConnected()){     
+  } else {
+  
     #ifdef DEBUG
-      std::cout << "[blsclient_whiteLightsOff] rover not connected" << std::endl;
+      std::cout << "[blsclient_clock] call bridget api\n"
+                << "white lights: " << whiteLightsOn << "\n"
+                << "uv lights:    " << UVLightsOn << "\n"
+                << "move speed:   " << speed << " r: " << angle << "\n"
+                << "target pan:   " << pan << " tilt: " << tilt << std::endl;
     #endif
-    return;
-  }
 
-  rover.turnWhiteLightsOff();
+    whiteLightsOn ? rover.turnWhiteLightsOn() : rover.turnWhiteLightsOff();
+    UVLightsOn ? rover.turnUVLightsOn() : rover.turnUVLightsOff();
+    rover.ackermannMove(speed,angle);
+    rover.setCameraAngle(pan, tilt);
+  }
 #endif
 }
+
+void blsclient_PI_setWhiteLights(const asn1SccT_Boolean * on){
+
+#ifdef DEBUG
+    std::cout << "[blsclient_setWhiteLights] on: " << *on  << std::endl;
+#endif
+
+  whiteLightsOn = on;
+}
+
+void blsclient_PI_setUVLights(const asn1SccT_Boolean * on){
+
+#ifdef DEBUG
+    std::cout << "[blsclient_UBLights] on: " << *on << std::endl;
+#endif
+
+  UVLightsOn = on;
+}
+
 
 void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 {
-#ifdef DEBUG
-    std::cout << "[blsclient_PI_pan_tilt] Would move pan tilt unit\n";
-#endif
 
-#ifdef DUMMY
+#ifndef DUMMY
   // nothing to do
 #else  
-  if (!rover.isBridgetConnected()){     
-    #ifdef DEBUG
-      std::cout << "[blsclient_PI_pan_tilt] rover not connected" << std::endl;
-    #endif
-    return;
-  }
-
   base::samples::Joints base_joints;
 
-  double pan = 0.0;
-  double tilt = 0.0;
-
   asn1SccBase_commands_Joints_fromAsn1(base_joints, *IN_cmd);
-
-  pan =  base_joints.elements[0].position * 180 / M_PI;
-  tilt = base_joints.elements[1].position * 180 / M_PI;
-
-  pan = pan > 144.0 ? 144.0 : pan;
-  pan = pan < -144.0 ? -144.0 : pan;
-
-  tilt = tilt > 28.0 ? 28.0 : tilt;
-  tilt = tilt < -28.0 ? -28.0 : tilt;
-
-  rover.setCameraAngle(pan, tilt);
+    
+  pspeed = base_joints.elements[0].speed * 180 / M_PI;    
+  tspeed = base_joints.elements[1].speed * 180 / M_PI;
+#ifdef DEBUG
+    std::cout << "[blsclient_PI_pan_tilt] Move pan tilt unit pan: " << pspeed << " tilt: " << tspeed << std::endl;
+#endif
 #endif
 }
