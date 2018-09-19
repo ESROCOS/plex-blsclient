@@ -23,7 +23,7 @@ END PI_motion_command;
 
 SUBPROGRAM IMPLEMENTATION PI_motion_command.others
 PROPERTIES
-  Compute_Execution_Time => 0 ms .. 20 ms;
+  Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_motion_command.others;
 
 SUBPROGRAM PI_pan_tilt
@@ -41,8 +41,6 @@ PROPERTIES
 END PI_pan_tilt.others;
 
 SUBPROGRAM PI_clock
-PROPERTIES
-  Taste::Associated_Queue_Size => 1;
 END PI_clock;
 
 SUBPROGRAM IMPLEMENTATION PI_clock.others
@@ -50,25 +48,19 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_clock.others;
 
-SUBPROGRAM PI_whiteLightsOn
+SUBPROGRAM PI_setWhiteLights
+FEATURES
+  toggle : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
 PROPERTIES
   Taste::Associated_Queue_Size => 1;
-END PI_whiteLightsOn;
+END PI_setWhiteLights;
 
-SUBPROGRAM IMPLEMENTATION PI_whiteLightsOn.others
+SUBPROGRAM IMPLEMENTATION PI_setWhiteLights.others
 PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
-END PI_whiteLightsOn.others;
-
-SUBPROGRAM PI_whiteLightsOff
-PROPERTIES
-  Taste::Associated_Queue_Size => 1;
-END PI_whiteLightsOff;
-
-SUBPROGRAM IMPLEMENTATION PI_whiteLightsOff.others
-PROPERTIES
-  Compute_Execution_Time => 0 ms .. 0 ms;
-END PI_whiteLightsOff.others;
+END PI_setWhiteLights.others;
 
 SUBPROGRAM RI_rigidBodyState
 FEATURES
@@ -80,13 +72,27 @@ END RI_rigidBodyState;
 SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
 END RI_rigidBodyState.others;
 
+SUBPROGRAM PI_setUVLights
+FEATURES
+  toggle : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_setUVLights;
+
+SUBPROGRAM IMPLEMENTATION PI_setUVLights.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 0 ms;
+END PI_setUVLights.others;
+
 SYSTEM blsclient
 FEATURES
   PI_motion_command : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_motion_command.others {
     Taste::coordinates => "104250 87815";
     Taste::RCMoperationKind => sporadic;
-    Taste::RCMperiod => 1000 ms;
-    Taste::Deadline => 10 ms;
+    Taste::RCMperiod => 0 ms;
+    Taste::Deadline => 0 ms;
     Taste::InterfaceName => "motion_command";
   };
   PI_pan_tilt : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_pan_tilt.others {
@@ -99,23 +105,16 @@ FEATURES
   PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_clock.others {
     Taste::coordinates => "160566 69290";
     Taste::RCMoperationKind => cyclic;
-    Taste::RCMperiod => 1000 ms;
+    Taste::RCMperiod => 100 ms;
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "clock";
   };
-  PI_whiteLightsOn : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_whiteLightsOn.others {
+  PI_setWhiteLights : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setWhiteLights.others {
     Taste::coordinates => "104250 137051";
     Taste::RCMoperationKind => sporadic;
     Taste::RCMperiod => 0 ms;
     Taste::Deadline => 0 ms;
-    Taste::InterfaceName => "whiteLightsOn";
-  };
-  PI_whiteLightsOff : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_whiteLightsOff.others {
-    Taste::coordinates => "104250 145642";
-    Taste::RCMoperationKind => sporadic;
-    Taste::RCMperiod => 0 ms;
-    Taste::Deadline => 0 ms;
-    Taste::InterfaceName => "whiteLightsOff";
+    Taste::InterfaceName => "setWhiteLights";
   };
   RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
     Taste::coordinates => "174734 121160";
@@ -123,16 +122,22 @@ FEATURES
     Taste::InterfaceName => "rigidBodyState";
     Taste::labelInheritance => "false";
   };
+  PI_setUVLights : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setUVLights.others {
+    Taste::coordinates => "104250 145370";
+    Taste::RCMoperationKind => sporadic;
+    Taste::RCMperiod => 0 ms;
+    Taste::Deadline => 0 ms;
+    Taste::InterfaceName => "setUVLights";
+  };
 PROPERTIES
   Source_Language => (CPP);
   Taste::Active_Interfaces => any;
-  Source_Text => ("blsclient.zip");
 END blsclient;
 
 SYSTEM IMPLEMENTATION blsclient.others
 SUBCOMPONENTS
   compilerOption : DATA DataView::Taste_directive {
-    Taste::FS_Default_Value => "compiler-option:""-DOROCOS_TARGET=gnulinux""";
+    Taste::FS_Default_Value => "compiler-option:""-DOROCOS_TARGET=gnulinux -DDEBUG""";
   };
 END blsclient.others;
 
@@ -298,17 +303,25 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_clock.others;
 
-SUBPROGRAM RI_whiteLightsOff
-END RI_whiteLightsOff;
+SUBPROGRAM RI_setUVLights
+FEATURES
+  toggle : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
+END RI_setUVLights;
 
-SUBPROGRAM IMPLEMENTATION RI_whiteLightsOff.others
-END RI_whiteLightsOff.others;
+SUBPROGRAM IMPLEMENTATION RI_setUVLights.others
+END RI_setUVLights.others;
 
-SUBPROGRAM RI_whiteLightsOn
-END RI_whiteLightsOn;
+SUBPROGRAM RI_setWhiteLights
+FEATURES
+  toggle : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
+END RI_setWhiteLights;
 
-SUBPROGRAM IMPLEMENTATION RI_whiteLightsOn.others
-END RI_whiteLightsOn.others;
+SUBPROGRAM IMPLEMENTATION RI_setWhiteLights.others
+END RI_setWhiteLights.others;
 
 SYSTEM dummyLights
 FEATURES
@@ -319,16 +332,16 @@ FEATURES
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "clock";
   };
-  RI_whiteLightsOff : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_whiteLightsOff.others {
-    Taste::coordinates => "51132 187294";
+  RI_setUVLights : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setUVLights.others {
+    Taste::coordinates => "51132 151385";
     Taste::RCMoperationKind => any;
-    Taste::InterfaceName => "whiteLightsOff";
+    Taste::InterfaceName => "setUVLights";
     Taste::labelInheritance => "true";
   };
-  RI_whiteLightsOn : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_whiteLightsOn.others {
-    Taste::coordinates => "51132 175365";
+  RI_setWhiteLights : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setWhiteLights.others {
+    Taste::coordinates => "51132 139061";
     Taste::RCMoperationKind => any;
-    Taste::InterfaceName => "whiteLightsOn";
+    Taste::InterfaceName => "setWhiteLights";
     Taste::labelInheritance => "true";
   };
 PROPERTIES
@@ -382,14 +395,14 @@ CONNECTIONS
   blsclient_PI_pan_tilt_dummyPanTiltProducer_RI_pan_tilt : SUBPROGRAM ACCESS blsclient.PI_pan_tilt -> dummyPanTiltProducer.RI_pan_tilt {
     Taste::coordinates => "134244 38934 134244 54112 137054 54112 137054 69290";
   };
-  blsclient_PI_whiteLightsOn_dummyLights_RI_whiteLightsOn : SUBPROGRAM ACCESS blsclient.PI_whiteLightsOn -> dummyLights.RI_whiteLightsOn {
-    Taste::coordinates => "51132 175365 77691 175365 77691 137051 104250 137051";
-  };
-  blsclient_PI_whiteLightsOff_dummyLights_RI_whiteLightsOff : SUBPROGRAM ACCESS blsclient.PI_whiteLightsOff -> dummyLights.RI_whiteLightsOff {
-    Taste::coordinates => "51132 187294 83100 187294 83100 145642 104250 145642";
+  blsclient_PI_setWhiteLights_dummyLights_RI_setWhiteLights : SUBPROGRAM ACCESS blsclient.PI_setWhiteLights -> dummyLights.RI_setWhiteLights {
+    Taste::coordinates => "51132 139061 77691 139061 77691 137051 104250 137051";
   };
   dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
     Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";
+  };
+  blsclient_PI_setUVLights_dummyLights_RI_setUVLights : SUBPROGRAM ACCESS blsclient.PI_setUVLights -> dummyLights.RI_setUVLights {
+    Taste::coordinates => "51132 151385 77691 151385 77691 145370 104250 145370";
   };
 END interfaceview.others;
 
