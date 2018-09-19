@@ -208,33 +208,33 @@ void blsclient_PI_setWhiteLights(const asn1SccT_Boolean * on){
     std::cout << "[blsclient_setWhiteLights] on: " << *on  << std::endl;
 #endif
 
-  whiteLightsOn = on;
+  whiteLightsOn = *on;
 }
 
 void blsclient_PI_setUVLights(const asn1SccT_Boolean * on){
 
 #ifdef DEBUG
-    std::cout << "[blsclient_UBLights] on: " << *on << std::endl;
+    std::cout << "[blsclient_UVLights] on: " << *on << std::endl;
 #endif
 
-  UVLightsOn = on;
+  UVLightsOn = *on;
 }
 
 
 void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 {
 
-#ifndef DUMMY
+#ifdef DUMMY
   // nothing to do
 #else  
   base::samples::Joints base_joints;
-
   asn1SccBase_commands_Joints_fromAsn1(base_joints, *IN_cmd);
     
   pspeed = base_joints.elements[0].speed * 180 / M_PI;    
   tspeed = base_joints.elements[1].speed * 180 / M_PI;
-#ifdef DEBUG
+  
+  #ifdef DEBUG
     std::cout << "[blsclient_PI_pan_tilt] Move pan tilt unit pan: " << pspeed << " tilt: " << tspeed << std::endl;
-#endif
+  #endif
 #endif
 }

@@ -19,9 +19,9 @@ void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *);
 
 void blsclient_PI_clock();
 
-void blsclient_PI_whiteLightsOn();
+void blsclient_PI_setWhiteLights(const asn1SccT_Boolean *);
 
-void blsclient_PI_whiteLightsOff();
+void blsclient_PI_setUVLights(const asn1SccT_Boolean *);
 
 extern void blsclient_RI_rigidBodyState(const asn1SccBase_samples_RigidBodyState *);
 
