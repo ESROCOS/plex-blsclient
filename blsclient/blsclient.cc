@@ -33,7 +33,7 @@ static bool whiteLightsOn = false;
 static bool UVLightsOn = false;
 
 // seconds
-const double DELTA_T = 0.1;
+const double DELTA_T = 0.05;
 // centimeters
 const double WHEEL_BASE = 119.0;
 // centimeters
@@ -214,37 +214,54 @@ void updateBodyState(){
 
 void blsclient_startup()
 {
+   std::cout << "[blsclient_startup] startup " << std::endl;
+#ifdef DEBUG
+   std::cout << "[blsclient_startup] DEBUG mode" << std::endl;
+#endif
    init_rbs(&bs);
    #ifdef DUMMY
      // do nothing
    #else
+     std::cout << "[blsclient startup] trying to connect with rover" << std::endl;
      while (!rover.isBridgetConnected()) {
        std::cout << "[blsclient startup] waiting for bridget to connect" << std::endl;     
        usleep(500000);
      }
+     std::cout << "[blsclient startup] bridget connected!" << std::endl;
 
+#ifdef DEBUG
+   std::cout << "[blsclient_startup] start movement control" << std::endl;
+#endif
      rover.startMovementControl();
-
+#ifdef DEBUG
+   std::cout << "[blsclient_startup] started movement control" << std::endl;
+#endif
+#ifdef DEBUG
+   std::cout << "[blsclient_startup] try to get telemetry" << std::endl;
+#endif
      rover.getTelemetry(latest_t);
+#ifdef DEBUG
+   std::cout << "[blsclient_startup] got telemetry" << std::endl;
+#endif
 
      if(latest_t.getBlsMode() != 1) {
-       rover.switchControlMode();
        std::cout << "[blsclient startup] switching control mode" << std::endl;
+       rover.switchControlMode();
      }
       
      if(latest_t.getLocomotionMode() != 0) {
-       rover.pointTurnToggle();
        std::cout << "[blsclient startup] switching to ackermann mode" << std::endl;
+       rover.pointTurnToggle();
      }
    #endif
-
-   #ifdef DEBUG
-     std::cout << "[blsclient startup] rover connected: " << rover.isBridgetConnected()  << std::endl;
-   #endif
+     std::cout << "[blsclient startup] startup finished" << std::endl;
 }
 
 void blsclient_PI_motion_command(const asn1SccBase_commands_Motion2D *IN_mc)
 {
+#ifdef DEBUG
+    std::cout << "[blsclient_PI_motion_command] !" << std::endl;
+#endif
   asn1SccBase_commands_Motion2D_fromAsn1(base_mc, *IN_mc);
 
 #ifdef DEBUG
@@ -273,9 +290,6 @@ void blsclient_PI_clock(){
 #ifdef DEBUG
   std::cout << "[blsclient_PI_clock] tick" << std::endl;
 #endif
-  
-
-  blsclient_RI_rigidBodyState(&bs);
 
 #ifndef DUMMY
   if (!rover.isBridgetConnected()){     
@@ -333,8 +347,11 @@ void blsclient_PI_clock(){
     }
   }
 #endif
+
   updateBodyState();
   updatePanTilt();
+  blsclient_RI_rigidBodyState(&bs);
+
   phase = (phase + 1)%NUMBER_OF_PHASES;
 }
 
@@ -370,6 +387,10 @@ void blsclient_PI_setPointTurn(const asn1SccT_Boolean * on){
 
 void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 {
+#ifdef DEBUG
+    std::cout << "[blsclient_PI_pan_tilt] !" << std::endl;
+#endif
+
 #ifdef DUMMY
   // nothing to do
 #else  
