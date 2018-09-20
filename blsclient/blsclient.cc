@@ -25,6 +25,10 @@ static double pspeed = 0, tspeed = 0;
 
 // speed in cm / s angle in radian
 static double speed = 0, angle = 0;
+
+// state flags
+static bool pointTurnOn = false;
+static bool togglePointTurn = false;
 static bool whiteLightsOn = false;
 static bool UVLightsOn = false;
 
@@ -35,10 +39,15 @@ const double WHEEL_BASE = 119.0;
 // centimeters
 const double WHEEL_RADIUS = 15.0;
 
+// number
+const int NUMBER_OF_PHASES = 4;
+
 #ifdef DUMMY
   // nothing to do
 #else
 static bridgetAPI::BridgetAPI rover;
+static bridgetAPI::Telemetry latest_t;
+static bridgetAPI::Position latest_p;
 #endif
 
 void init_rbs(asn1SccBase_samples_RigidBodyState *rbs)
@@ -65,20 +74,18 @@ void updatePanTilt(){
   } else {
       
   // UNVERIFIED START 
-  //
+
   // get current pan tilt
   
-//    bridgetAPI::Position p;
-//    rover.getPositionTelemetry(p);
-//    pan = p.getPanAngle();
-//    tilt = p.getTiltAngle();
+    pan = latest_p.getPanAngle();
+    tilt = latest_p.getTiltAngle();
    //UNVERIFIED END
 
   }
 #endif
 
-  // current target pan/tilt + speed * delta_t in degree
- 
+  // current target pan/tilt + speed * delta_t in degree * extrapolation factor
+  
   pan =  pan  + DELTA_T * pspeed * 5.0;
   tilt = tilt + DELTA_T * tspeed * 5.0;
 
@@ -129,8 +136,6 @@ void updateBodyState(){
   /*
   // retrieve current values
 
-  bridgetAPI::Position p;
-  rover.getPositionTelemetry(p);
   
   // assing new values
   translation_ = base::Vector3d(p.getPosX(), p.getPosY(), p.getPosZ());
@@ -147,24 +152,22 @@ void updateBodyState(){
 
   bridgetAPI::WheelData w_data;
   bridgetAPI::SteerData s_data;
-  bridgetAPI::Telemetry t_data;
   bridgetAPI::Wheels currentSteering;
   bridgetAPI::Wheels currentSpeeds;
-  rover.getTelemetry(t_data);
-  w_data = t_data.getWheelData();
-  s_data = t_data.getSteerData();
+  w_data = latest_t.getWheelData();
+  s_data = latest_t.getSteerData();
   currentSteering = s_data.getSteerAngleData();
   currentSpeeds = w_data.getWheelSpeedData();
-
-  /*
+ 
   const double currentSpeed = WHEEL_RADIUS * (currentSpeeds.getMiddleRight() + currentSpeeds.getMiddleLeft()) / 2.0;
   const double currentAngle = std::abs((currentSteering.getFrontRight() + currentSteering.getFrontLeft()) / 2.0) +
                         std::abs((currentSteering.getRearRight() + currentSteering.getRearLeft()) / 2.0);
+#ifdef DEBUG
   std::cout << "[blsclient updateBodyState] current speed: " << currentSpeed << std::endl; 
-  */
+#endif
 
-  const double currentSpeed = speed;
-  const double currentAngle = angle;
+  //const double currentSpeed = speed;
+  //const double currentAngle = angle;
 
   // Ackermann Steering equation
   // The testing system employs double ackermann steering,
@@ -215,7 +218,6 @@ void blsclient_startup()
    #ifdef DUMMY
      // do nothing
    #else
-     // UNVERIFIED START
      while (!rover.isBridgetConnected()) {
        std::cout << "[blsclient startup] waiting for bridget to connect" << std::endl;     
        usleep(500000);
@@ -223,19 +225,17 @@ void blsclient_startup()
 
      rover.startMovementControl();
 
-     bridgetAPI::Telemetry t;
-     rover.getTelemetry(t);
+     rover.getTelemetry(latest_t);
 
-     if(t.getBlsMode() != 1) {
+     if(latest_t.getBlsMode() != 1) {
        rover.switchControlMode();
        std::cout << "[blsclient startup] switching control mode" << std::endl;
      }
       
-     if(t.getLocomotionMode() != 0) {
+     if(latest_t.getLocomotionMode() != 0) {
        rover.pointTurnToggle();
        std::cout << "[blsclient startup] switching to ackermann mode" << std::endl;
      }
-     // UNVERIFIED END
    #endif
 
    #ifdef DEBUG
@@ -273,9 +273,7 @@ void blsclient_PI_clock(){
 #ifdef DEBUG
   std::cout << "[blsclient_PI_clock] tick" << std::endl;
 #endif
-
-  updateBodyState();
-  updatePanTilt();
+  
 
   blsclient_RI_rigidBodyState(&bs);
 
@@ -285,36 +283,59 @@ void blsclient_PI_clock(){
       std::cout << "[blsclient_clock] rover not connected" << std::endl;
     #endif
   } else {
- // UNVERIFIED START 
-    #ifdef DEBUG
-/*      
-      rover.getTelemetry(t);
-      const int lcm = t.getLocomotionMode();
-      const int bls = t.getBlsMode();
-
-      std::cout << "[blsclient_clock] call bridget api\n"
-                << "bls mode (1): " << bls << "\n"
-                << "lc  mode (0): " << lcm << "\n"
-                << "white lights: " << whiteLightsOn << "\n"
-                << "uv lights:    " << UVLightsOn << "\n"
-                << "move speed:   " << speed << " r: " << angle << "\n"
-                << "target pan:   " << pan << " tilt: " << tilt << std::endl;
-*/
-    #endif
-   // UVLightsOn ? rover.turnUVLightsOn() : rover.turnUVLightsOff();
-// UNVERIFIED END
-    whiteLightsOn ? rover.turnWhiteLightsOn() : rover.turnWhiteLightsOff();
 
     // only send pantilt / ackermann commands phase shifted
-    if(phase%2 == 0){
-      rover.ackermannMove(speed,angle);
-    } else {
-      rover.setCameraAngle(pan, tilt);
-    }
+    switch (phase){
+    case 0: // telemetry
+ // UNVERIFIED START 
+         
+      rover.getPositionTelemetry(latest_p);
+      rover.getTelemetry(latest_t);
 
+    #ifdef DEBUG
+      {
+        const int lcm = latest_t.getLocomotionMode();
+        const int bls = latest_t.getBlsMode();
+      
+        std::cout << "[blsclient_clock] call bridget api\n"
+                  << "bls mode (1): " << bls << "\n"
+                  << "lc  mode (0): " << lcm << "\n"
+                  << "white lights: " << whiteLightsOn << "\n"
+                  << "uv lights:    " << UVLightsOn << "\n"
+                  << "move speed:   " << speed << " r: " << angle << "\n"
+                  << "target pan:   " << pan << " tilt: " << tilt << std::endl;
+      }
+    #endif
+// UNVERIFIED END
+      break;
+    case 1: // movement
+      if (pointTurnOn){
+        rover.pointTurnMove(angle);
+      } else {
+        rover.ackermannMove(speed,angle);
+      }
+      break;
+    case 2: // toggle flags
+         whiteLightsOn ? rover.turnWhiteLightsOn() : rover.turnWhiteLightsOff();
+      // UVLightsOn ? rover.turnUVLightsOn() : rover.turnUVLightsOff();
+         if(togglePointTurn) {
+             rover.pointTurnToggle();
+             // race conditions could arise when the PI is called in between the line above and below
+             pointTurnOn = !pointTurnOn;
+             togglePointTurn = false;
+         }
+      break;
+    case 3: // pan/tilt
+      rover.setCameraAngle(pan, tilt);
+      break;
+    default:
+      break;
+    }
   }
 #endif
-  phase++;
+  updateBodyState();
+  updatePanTilt();
+  phase = (phase + 1)%NUMBER_OF_PHASES;
 }
 
 void blsclient_PI_setWhiteLights(const asn1SccT_Boolean * on){
@@ -335,6 +356,17 @@ void blsclient_PI_setUVLights(const asn1SccT_Boolean * on){
   UVLightsOn = *on;
 }
 
+void blsclient_PI_setPointTurn(const asn1SccT_Boolean * on){
+#ifdef DEBUG
+    std::cout << "[blsclient_setPointTurn] on: " << *on << std::endl;
+#endif
+
+  if(*on != pointTurnOn) {
+      togglePointTurn = true;
+  } else {
+      togglePointTurn = false;
+  }
+}
 
 void blsclient_PI_pan_tilt(const asn1SccBase_commands_Joints *IN_cmd)
 {

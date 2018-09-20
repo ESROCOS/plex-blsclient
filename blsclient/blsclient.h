@@ -23,6 +23,8 @@ void blsclient_PI_setWhiteLights(const asn1SccT_Boolean *);
 
 void blsclient_PI_setUVLights(const asn1SccT_Boolean *);
 
+void blsclient_PI_setPointTurn(const asn1SccT_Boolean *);
+
 extern void blsclient_RI_rigidBodyState(const asn1SccBase_samples_RigidBodyState *);
 
 #ifdef __cplusplus
