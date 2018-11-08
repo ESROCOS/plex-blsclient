@@ -41,6 +41,8 @@ PROPERTIES
 END PI_pan_tilt.others;
 
 SUBPROGRAM PI_clock
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
 END PI_clock;
 
 SUBPROGRAM IMPLEMENTATION PI_clock.others
@@ -62,16 +64,6 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_setWhiteLights.others;
 
-SUBPROGRAM RI_rigidBodyState
-FEATURES
-  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
-    Taste::encoding => NATIVE;
-  };
-END RI_rigidBodyState;
-
-SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
-END RI_rigidBodyState.others;
-
 SUBPROGRAM PI_setUVLights
 FEATURES
   toggle : IN PARAMETER DataView::T_Boolean {
@@ -85,6 +77,30 @@ SUBPROGRAM IMPLEMENTATION PI_setUVLights.others
 PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_setUVLights.others;
+
+SUBPROGRAM RI_rigidBodyState
+FEATURES
+  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
+    Taste::encoding => NATIVE;
+  };
+END RI_rigidBodyState;
+
+SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
+END RI_rigidBodyState.others;
+
+SUBPROGRAM PI_setPointTurn
+FEATURES
+  on : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
+PROPERTIES
+  Taste::Associated_Queue_Size => 1;
+END PI_setPointTurn;
+
+SUBPROGRAM IMPLEMENTATION PI_setPointTurn.others
+PROPERTIES
+  Compute_Execution_Time => 0 ms .. 0 ms;
+END PI_setPointTurn.others;
 
 SYSTEM blsclient
 FEATURES
@@ -116,18 +132,25 @@ FEATURES
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "setWhiteLights";
   };
-  RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
-    Taste::coordinates => "174734 121160";
-    Taste::RCMoperationKind => any;
-    Taste::InterfaceName => "rigidBodyState";
-    Taste::labelInheritance => "false";
-  };
   PI_setUVLights : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setUVLights.others {
     Taste::coordinates => "104250 145370";
     Taste::RCMoperationKind => sporadic;
     Taste::RCMperiod => 0 ms;
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "setUVLights";
+  };
+  RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
+    Taste::coordinates => "174734 121160";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "rigidBodyState";
+    Taste::labelInheritance => "false";
+  };
+  PI_setPointTurn : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setPointTurn.others {
+    Taste::coordinates => "104250 154320";
+    Taste::RCMoperationKind => sporadic;
+    Taste::RCMperiod => 0 ms;
+    Taste::Deadline => 0 ms;
+    Taste::InterfaceName => "setPointTurn";
   };
 PROPERTIES
   Source_Language => (CPP);
@@ -323,6 +346,16 @@ END RI_setWhiteLights;
 SUBPROGRAM IMPLEMENTATION RI_setWhiteLights.others
 END RI_setWhiteLights.others;
 
+SUBPROGRAM RI_setPointTurn
+FEATURES
+  on : IN PARAMETER DataView::T_Boolean {
+    Taste::encoding => NATIVE;
+  };
+END RI_setPointTurn;
+
+SUBPROGRAM IMPLEMENTATION RI_setPointTurn.others
+END RI_setPointTurn.others;
+
 SYSTEM dummyLights
 FEATURES
   PI_clock : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::dummyLights::PI_clock.others {
@@ -342,6 +375,12 @@ FEATURES
     Taste::coordinates => "51132 139061";
     Taste::RCMoperationKind => any;
     Taste::InterfaceName => "setWhiteLights";
+    Taste::labelInheritance => "true";
+  };
+  RI_setPointTurn : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setPointTurn.others {
+    Taste::coordinates => "51132 180609";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "setPointTurn";
     Taste::labelInheritance => "true";
   };
 PROPERTIES
@@ -398,11 +437,14 @@ CONNECTIONS
   blsclient_PI_setWhiteLights_dummyLights_RI_setWhiteLights : SUBPROGRAM ACCESS blsclient.PI_setWhiteLights -> dummyLights.RI_setWhiteLights {
     Taste::coordinates => "51132 139061 77691 139061 77691 137051 104250 137051";
   };
+  blsclient_PI_setUVLights_dummyLights_RI_setUVLights : SUBPROGRAM ACCESS blsclient.PI_setUVLights -> dummyLights.RI_setUVLights {
+    Taste::coordinates => "51132 151385 77691 151385 77691 145370 104250 145370";
+  };
   dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
     Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";
   };
-  blsclient_PI_setUVLights_dummyLights_RI_setUVLights : SUBPROGRAM ACCESS blsclient.PI_setUVLights -> dummyLights.RI_setUVLights {
-    Taste::coordinates => "51132 151385 77691 151385 77691 145370 104250 145370";
+  blsclient_PI_setPointTurn_dummyLights_RI_setPointTurn : SUBPROGRAM ACCESS blsclient.PI_setPointTurn -> dummyLights.RI_setPointTurn {
+    Taste::coordinates => "51132 180609 77691 180609 77691 154320 104250 154320";
   };
 END interfaceview.others;
 
