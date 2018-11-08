@@ -11,8 +11,12 @@
 #include <iostream>
 #include <cstring>
 #include <cmath>
-#include <bridgetAPI.h>
 #include <unistd.h>
+#ifdef DUMMY
+  // do not include bridget API
+#else
+#include <bridgetAPI.h>
+#endif
 
 static asn1SccBase_samples_RigidBodyState bs;
 static base::commands::Motion2D base_mc;
