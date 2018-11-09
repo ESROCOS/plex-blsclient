@@ -110,8 +110,8 @@ void updateBodyState(){
 
 #ifdef DUMMY
   // get old values
-  base::Vector3d translation();
-  base::Quaterniond orientation();
+  base::Vector3d translation(0,0,0);
+  base::Quaterniond orientation(0,0,0,1);
 
   asn1Scc_Vector3d_fromAsn1(translation, bs.position);
   asn1Scc_Quaterniond_fromAsn1(orientation, bs.orientation);

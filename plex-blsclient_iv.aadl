@@ -78,16 +78,6 @@ PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_setUVLights.others;
 
-SUBPROGRAM RI_rigidBodyState
-FEATURES
-  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
-    Taste::encoding => NATIVE;
-  };
-END RI_rigidBodyState;
-
-SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
-END RI_rigidBodyState.others;
-
 SUBPROGRAM PI_setPointTurn
 FEATURES
   on : IN PARAMETER DataView::T_Boolean {
@@ -101,6 +91,16 @@ SUBPROGRAM IMPLEMENTATION PI_setPointTurn.others
 PROPERTIES
   Compute_Execution_Time => 0 ms .. 0 ms;
 END PI_setPointTurn.others;
+
+SUBPROGRAM RI_rigidBodyState
+FEATURES
+  rbs_in : IN PARAMETER DataView::Base_samples_RigidBodyState {
+    Taste::encoding => NATIVE;
+  };
+END RI_rigidBodyState;
+
+SUBPROGRAM IMPLEMENTATION RI_rigidBodyState.others
+END RI_rigidBodyState.others;
 
 SYSTEM blsclient
 FEATURES
@@ -139,12 +139,6 @@ FEATURES
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "setUVLights";
   };
-  RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
-    Taste::coordinates => "174734 121160";
-    Taste::RCMoperationKind => any;
-    Taste::InterfaceName => "rigidBodyState";
-    Taste::labelInheritance => "false";
-  };
   PI_setPointTurn : PROVIDES SUBPROGRAM ACCESS interfaceview::IV::blsclient::PI_setPointTurn.others {
     Taste::coordinates => "104250 154320";
     Taste::RCMoperationKind => sporadic;
@@ -152,15 +146,22 @@ FEATURES
     Taste::Deadline => 0 ms;
     Taste::InterfaceName => "setPointTurn";
   };
+  RI_rigidBodyState : REQUIRES SUBPROGRAM ACCESS interfaceview::IV::dummyConsumer::PI_rbs.others {
+    Taste::coordinates => "174734 121160";
+    Taste::RCMoperationKind => any;
+    Taste::InterfaceName => "rigidBodyState";
+    Taste::labelInheritance => "false";
+  };
 PROPERTIES
   Source_Language => (CPP);
   Taste::Active_Interfaces => any;
+  Source_Text => ("blsclient.zip");
 END blsclient;
 
 SYSTEM IMPLEMENTATION blsclient.others
 SUBCOMPONENTS
   compilerOption : DATA DataView::Taste_directive {
-    Taste::FS_Default_Value => "compiler-option:""-DOROCOS_TARGET=gnulinux -DDEBUG""";
+    Taste::FS_Default_Value => "compiler-option:""-DOROCOS_TARGET=gnulinux -DDEBUG -DDUMMY""";
   };
 END blsclient.others;
 
@@ -440,11 +441,11 @@ CONNECTIONS
   blsclient_PI_setUVLights_dummyLights_RI_setUVLights : SUBPROGRAM ACCESS blsclient.PI_setUVLights -> dummyLights.RI_setUVLights {
     Taste::coordinates => "51132 151385 77691 151385 77691 145370 104250 145370";
   };
-  dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
-    Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";
-  };
   blsclient_PI_setPointTurn_dummyLights_RI_setPointTurn : SUBPROGRAM ACCESS blsclient.PI_setPointTurn -> dummyLights.RI_setPointTurn {
     Taste::coordinates => "51132 180609 77691 180609 77691 154320 104250 154320";
+  };
+  dummyConsumer_PI_rbs_blsclient_RI_rigidBodyState : SUBPROGRAM ACCESS dummyConsumer.PI_rbs -> blsclient.RI_rigidBodyState {
+    Taste::coordinates => "174734 121160 201796 121160 201796 100782 228619 100782";
   };
 END interfaceview.others;
 
